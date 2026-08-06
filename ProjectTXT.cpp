@@ -1,6 +1,5 @@
 // ProjectTXT.cpp – tree + file list with contents (C++20)
 // Compile: g++ -std=c++20 ProjectTXT.cpp -o ProjectTXT
-//          cl /EHsc /std:c++latest ProjectTXT.cpp          (Windows)
 
 #include <iostream>
 #include <fstream>
@@ -10,17 +9,24 @@
 #include <algorithm>
 #include <cctype>
 
+#ifdef _WIN32
+#include <windows.h>
+#else
+#include <unistd.h>
+#include <limits.h>
+#endif
+
 namespace fs = std::filesystem;
 
 // ----------------------------------------------------------------------
-// Built‑in default exclusions – compiled into the binary
+// Default exclusion list – compiled into the binary
 const std::vector<std::string> DEFAULT_EXCLUDES = {
-    ".git",
-    ".cache"
+    ".cache",
+    "obj",
+    "files/map"
 };
 
 // ----------------------------------------------------------------------
-// Trim leading/trailing whitespace
 static std::string trim(const std::string &s) {
     size_t start = 0;
     while (start < s.size() && std::isspace(static_cast<unsigned char>(s[start]))) ++start;
@@ -30,7 +36,22 @@ static std::string trim(const std::string &s) {
 }
 
 // ----------------------------------------------------------------------
-// Check whether 'path' (relative to 'root') should be excluded
+static fs::path get_executable_dir() {
+#ifdef _WIN32
+    wchar_t path[MAX_PATH] = {0};
+    GetModuleFileNameW(nullptr, path, MAX_PATH);
+    return fs::path(path).parent_path();
+#else
+    char result[PATH_MAX];
+    ssize_t count = readlink("/proc/self/exe", result, PATH_MAX);
+    if (count != -1) {
+        return fs::path(std::string(result, count)).parent_path();
+    }
+    return fs::current_path();
+#endif
+}
+
+// ----------------------------------------------------------------------
 static bool is_excluded(const fs::path &path, const fs::path &root,
                         const std::vector<std::string> &patterns) {
     if (patterns.empty()) return false;
@@ -50,7 +71,6 @@ static bool is_excluded(const fs::path &path, const fs::path &root,
 }
 
 // ----------------------------------------------------------------------
-// Simple recursive tree printer
 void print_tree(std::ostream &out, const fs::path &dir,
                 const std::string &prefix, bool is_last,
                 const fs::path &start_dir,
@@ -84,7 +104,6 @@ void print_tree(std::ostream &out, const fs::path &dir,
 }
 
 // ----------------------------------------------------------------------
-// Quick binary detection
 static bool is_binary(const fs::path &filepath) {
     std::ifstream f(filepath, std::ios::binary);
     if (!f) return false;
@@ -99,14 +118,13 @@ static bool is_binary(const fs::path &filepath) {
 
 // ----------------------------------------------------------------------
 int main() {
-    // Directories to scan for file contents
     const std::vector<std::string> dirs = {"src", "obj", "shaders", "include"};
 
-    // 1. Build the exclusion list = built‑in defaults + optional exclude.txt
-    std::vector<std::string> exclude_patterns = DEFAULT_EXCLUDES;
+    // --- Load exclusion patterns ------------------------------------------
+    std::vector<std::string> exclude_patterns;
+    fs::path exe_dir = get_executable_dir();
+    fs::path external_exclude = exe_dir / "exclude.txt";
 
-    // Look for exclude.txt in the current working directory (project root)
-    fs::path external_exclude = fs::current_path() / "exclude.txt";
     if (fs::exists(external_exclude)) {
         std::ifstream f(external_exclude);
         if (f) {
@@ -114,44 +132,33 @@ int main() {
             while (std::getline(f, line)) {
                 std::string pat = trim(line);
                 if (pat.empty()) continue;
-
-                // C++20: remove trailing slashes or backslashes
-                while (!pat.empty() &&
-                       (pat.ends_with('/') || pat.ends_with('\\')))
+                while (!pat.empty() && (pat.back() == '/' || pat.back() == '\\'))
                     pat.pop_back();
-
                 if (!pat.empty())
                     exclude_patterns.push_back(pat);
             }
-            std::cout << "Additional excludes loaded from: " << external_exclude << '\n';
-        }
-    } else {
-        std::cout << "No exclude.txt found – using only built‑in defaults.\n";
-    }
-
-    // 2. Ensure output directory exists
-    std::error_code ec;
-    if (!fs::create_directory("output", ec) && ec) {
-        if (ec != std::make_error_code(std::errc::file_exists)) {
-            std::cerr << "Error creating output directory: " << ec.message() << '\n';
-            return 1;
+            std::cout << "Loaded external exclude.txt from: " << external_exclude << '\n';
         }
     }
+    if (exclude_patterns.empty()) {
+        exclude_patterns = DEFAULT_EXCLUDES;
+        std::cout << "Using compiled-in default excludes.\n";
+    }
 
-    // Open output file
+    // --- Open output file (no extra directory created) ---------------------
     std::ofstream out("ProjectTXT.txt");
     if (!out) {
         std::cerr << "Error: Could not open ProjectTXT.txt for writing.\n";
         return 1;
     }
 
-    // 3. Full directory tree
+    // --- 1. Directory tree -------------------------------------------------
     out << "=== DIRECTORY TREE ===\n";
     fs::path root = fs::current_path();
     print_tree(out, root, "", true, root, exclude_patterns);
     out << "\n\n";
 
-    // 4. File list with contents
+    // --- 2. File list with contents ----------------------------------------
     out << "=== FILES AND CONTENTS ===\n\n";
 
     for (const auto &dir : dirs) {
