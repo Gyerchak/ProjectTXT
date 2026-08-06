@@ -1,0 +1,118 @@
+=== DIRECTORY TREE ===
+└── ProjectTXT
+    ├── .git
+    │   ├── gk
+    │   │   └── config
+    │   ├── hooks
+    │   │   ├── applypatch-msg.sample
+    │   │   ├── commit-msg.sample
+    │   │   ├── fsmonitor-watchman.sample
+    │   │   ├── post-update.sample
+    │   │   ├── pre-applypatch.sample
+    │   │   ├── pre-commit.sample
+    │   │   ├── pre-merge-commit.sample
+    │   │   ├── pre-push.sample
+    │   │   ├── pre-rebase.sample
+    │   │   ├── pre-receive.sample
+    │   │   ├── prepare-commit-msg.sample
+    │   │   ├── push-to-checkout.sample
+    │   │   ├── sendemail-validate.sample
+    │   │   └── update.sample
+    │   ├── info
+    │   │   └── exclude
+    │   ├── logs
+    │   │   ├── refs
+    │   │   │   ├── heads
+    │   │   │   │   └── main
+    │   │   │   └── remotes
+    │   │   │       └── origin
+    │   │   │           ├── HEAD
+    │   │   │           └── main
+    │   │   └── HEAD
+    │   ├── objects
+    │   │   ├── 14
+    │   │   │   └── 7ad60b4652d9fdc751dbc56b7e5fce34703986
+    │   │   ├── 1d
+    │   │   │   └── 8711320e412e8d9c891cd8f383e47c11a5ddd8
+    │   │   ├── 2e
+    │   │   │   └── 5310135f02c0c636c89ed702eec82509d79f57
+    │   │   ├── 32
+    │   │   │   └── 5f61dccab31a2311e65c052005f64cdff125e2
+    │   │   ├── 3e
+    │   │   │   └── 5eb956e1aac2b053a4d09e761fcc26bb2b106e
+    │   │   ├── 45
+    │   │   │   └── 6774259f3ed2f7e2ad3b46019fd4e1274261cd
+    │   │   ├── 46
+    │   │   │   └── 97a4bba53e3c562b4d7aac81189aa140ce00fb
+    │   │   ├── 55
+    │   │   │   └── 27166ec35940ca1abc5a435e03537614d1877c
+    │   │   ├── 61
+    │   │   │   └── 3070090ae340542120eb8446ed2128e471659d
+    │   │   ├── 68
+    │   │   │   └── e70301d24d2793b0ec328e758d1f2e896578c3
+    │   │   ├── 73
+    │   │   │   └── ed46eb88660315ec48759c25993e2ca169ce15
+    │   │   ├── 78
+    │   │   │   └── 13092c85bf3ead2f85c60126ff26c1322fea01
+    │   │   ├── 88
+    │   │   │   └── 9669530ad7d4dd3c187c32764f9539ac17b669
+    │   │   ├── 96
+    │   │   │   └── c9cba3fc11b6e7bb3625dd64f5498e90bae4ed
+    │   │   ├── a9
+    │   │   │   └── 5072c805d3250c7ead878959de20bf16779bf6
+    │   │   ├── b1
+    │   │   │   └── dac786254010cbf0f693ef07f94ba874156620
+    │   │   ├── bb
+    │   │   │   └── 879da5a0774e5e3a4e5e90dba7a0770370c0f7
+    │   │   ├── c2
+    │   │   │   └── 098a2d0c4b96621c02cb4e33bc58231ccffc1d
+    │   │   ├── cf
+    │   │   │   └── cb5b0c743eecb204f57c84c30f210d1032c496
+    │   │   ├── e6
+    │   │   │   └── 9de29bb2d1d6434b8b29ae775ad8c2e48c5391
+    │   │   ├── e8
+    │   │   │   └── 12fa401ccaed31a98a4b9efc474f81f8347194
+    │   │   ├── f3
+    │   │   │   └── 5ea965d5e9480d2e2ebe5c77556acb5d58f9c4
+    │   │   ├── ff
+    │   │   │   └── 16b2667a86bc71561e713f2cd3135c6ec4d1ee
+    │   │   ├── info
+    │   │   └── pack
+    │   ├── refs
+    │   │   ├── heads
+    │   │   │   └── main
+    │   │   ├── remotes
+    │   │   │   └── origin
+    │   │   │       ├── HEAD
+    │   │   │       └── main
+    │   │   └── tags
+    │   ├── COMMIT_EDITMSG
+    │   ├── FETCH_HEAD
+    │   ├── HEAD
+    │   ├── ORIG_HEAD
+    │   ├── config
+    │   ├── description
+    │   └── index
+    ├── .vscode
+    │   ├── c_cpp_properties.json
+    │   ├── launch.json
+    │   └── settings.json
+    ├── output
+    ├── Exclude.txt
+    ├── LICENSE
+    ├── ProjectTXT
+    ├── ProjectTXT.cpp
+    ├── ProjectTXT.txt
+    └── README.md
+
+
+=== FILES AND CONTENTS ===
+
+[Warning: 'src' does not exist or is not a directory – skipping]
+
+[Warning: 'obj' does not exist or is not a directory – skipping]
+
+[Warning: 'shaders' does not exist or is not a directory – skipping]
+
+[Warning: 'include' does not exist or is not a directory – skipping]
+
