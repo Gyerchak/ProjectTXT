@@ -19,11 +19,14 @@
 namespace fs = std::filesystem;
 
 // ----------------------------------------------------------------------
-// Default exclusion list – compiled into the binary
+// Built‑in exclusion list – compiled into the binary
+// Add/remove patterns to match your project. Directories matching any of
+// these (relative to the project root) will be hidden from the tree and
+// their contents skipped during the file dump.
 const std::vector<std::string> DEFAULT_EXCLUDES = {
-    ".cache",
-    "obj",
-    "files/map"
+    // Version control
+    ".git",
+    ".cache"
 };
 
 // ----------------------------------------------------------------------
@@ -118,7 +121,8 @@ static bool is_binary(const fs::path &filepath) {
 
 // ----------------------------------------------------------------------
 int main() {
-    const std::vector<std::string> dirs = {"src", "obj", "shaders", "include"};
+    // Directories to scan for file contents – adjust these to your project
+    const std::vector<std::string> dirs = {"src", ".obj", ".shaders", "include"};
 
     // --- Load exclusion patterns ------------------------------------------
     std::vector<std::string> exclude_patterns;
@@ -145,7 +149,7 @@ int main() {
         std::cout << "Using compiled-in default excludes.\n";
     }
 
-    // --- Open output file (no extra directory created) ---------------------
+    // --- Open output file --------------------------------------------------
     std::ofstream out("ProjectTXT.txt");
     if (!out) {
         std::cerr << "Error: Could not open ProjectTXT.txt for writing.\n";
