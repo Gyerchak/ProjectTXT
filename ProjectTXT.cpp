@@ -1,6 +1,6 @@
-// ProjectTXT.cpp – tree + file list with contents
-// Compile: g++ -std=c++17 ProjectTXT.cpp -o ProjectTXT   (Linux/macOS)
-//          cl /EHsc /std:c++17 ProjectTXT.cpp            (Windows)
+// ProjectTXT.cpp – tree + file list with contents (C++20)
+// Compile: g++ -std=c++20 ProjectTXT.cpp -o ProjectTXT   (Linux/macOS)
+//          cl /EHsc /std:c++latest ProjectTXT.cpp         (Windows)
 
 #include <iostream>
 #include <fstream>
@@ -21,7 +21,6 @@ namespace fs = std::filesystem;
 
 // ----------------------------------------------------------------------
 // Default exclusion list – compiled into the binary
-// Change these to your own default patterns.
 const std::vector<std::string> DEFAULT_EXCLUDES = {
     ".cache",
     "obj",
@@ -51,21 +50,21 @@ static fs::path get_executable_dir() {
     if (count != -1) {
         return fs::path(std::string(result, count)).parent_path();
     }
-    // Fallback if /proc is not available (e.g. macOS – you can extend this)
+    // Fallback if /proc is not available
     return fs::current_path();
 #endif
 }
 
 // ----------------------------------------------------------------------
-// Check whether 'path' (relative to 'root') matches any exclude pattern
+// Check whether 'path' (relative to 'root') should be excluded
 static bool is_excluded(const fs::path &path, const fs::path &root,
                         const std::vector<std::string> &patterns) {
     if (patterns.empty()) return false;
     std::error_code ec;
     fs::path rel = fs::relative(path, root, ec);
-    if (ec) return false;                     // can't determine → don't exclude
-    std::string rel_str = rel.generic_string();   // forward slashes
-    if (rel_str.empty()) return false;        // the root itself
+    if (ec) return false;
+    std::string rel_str = rel.generic_string();
+    if (rel_str.empty()) return false;
 
     for (const auto &pat : patterns) {
         if (rel_str == pat) return true;
@@ -77,12 +76,11 @@ static bool is_excluded(const fs::path &path, const fs::path &root,
 }
 
 // ----------------------------------------------------------------------
-// Simple recursive tree printer (like the 'tree' command)
+// Simple recursive tree printer
 void print_tree(std::ostream &out, const fs::path &dir,
                 const std::string &prefix, bool is_last,
                 const fs::path &start_dir,
                 const std::vector<std::string> &exclude_patterns) {
-    // Print the current node
     out << prefix << (is_last ? "└── " : "├── ") << dir.filename().string() << '\n';
 
     if (!fs::is_directory(dir)) return;
@@ -90,18 +88,16 @@ void print_tree(std::ostream &out, const fs::path &dir,
     std::vector<fs::directory_entry> entries;
     try {
         for (const auto &e : fs::directory_iterator(dir)) {
-            // Skip excluded directories completely
             if (e.is_directory() && is_excluded(e.path(), start_dir, exclude_patterns))
                 continue;
             entries.push_back(e);
         }
     } catch (...) { return; }
 
-    // Sort: directories first, then files, alphabetically
     std::sort(entries.begin(), entries.end(),
               [](const fs::directory_entry &a, const fs::directory_entry &b) {
                   if (a.is_directory() != b.is_directory())
-                      return a.is_directory();  // directories first
+                      return a.is_directory();
                   return a.path().filename() < b.path().filename();
               });
 
@@ -114,7 +110,7 @@ void print_tree(std::ostream &out, const fs::path &dir,
 }
 
 // ----------------------------------------------------------------------
-// Quick check if a file is likely binary (contains a null byte)
+// Quick binary detection
 static bool is_binary(const fs::path &filepath) {
     std::ifstream f(filepath, std::ios::binary);
     if (!f) return false;
@@ -132,7 +128,7 @@ int main() {
     // Directories to scan for file contents
     const std::vector<std::string> dirs = {"src", "obj", "shaders", "include"};
 
-    // --- 1. Determine which exclusion list to use ------------------------------
+    // 1. Load exclusion patterns
     std::vector<std::string> exclude_patterns;
     fs::path exe_dir = get_executable_dir();
     fs::path external_exclude = exe_dir / "exclude.txt";
@@ -144,9 +140,12 @@ int main() {
             while (std::getline(f, line)) {
                 std::string pat = trim(line);
                 if (pat.empty()) continue;
-                // Remove trailing slash or backslash
-                while (!pat.empty() && (pat.back() == '/' || pat.back() == '\\'))
+
+                // C++20 convenience: remove trailing slashes with ends_with
+                while (!pat.empty() &&
+                       (pat.ends_with('/') || pat.ends_with('\\')))
                     pat.pop_back();
+
                 if (!pat.empty())
                     exclude_patterns.push_back(pat);
             }
@@ -158,7 +157,7 @@ int main() {
         std::cout << "Using compiled-in default excludes.\n";
     }
 
-    // --- 2. Ensure output directory exists ------------------------------------
+    // 2. Ensure output directory exists
     std::error_code ec;
     if (!fs::create_directory("output", ec) && ec) {
         if (ec != std::make_error_code(std::errc::file_exists)) {
@@ -174,13 +173,13 @@ int main() {
         return 1;
     }
 
-    // --- 3. Full directory tree -----------------------------------------------
+    // 3. Full directory tree
     out << "=== DIRECTORY TREE ===\n";
     fs::path root = fs::current_path();
     print_tree(out, root, "", true, root, exclude_patterns);
     out << "\n\n";
 
-    // --- 4. File list with contents -------------------------------------------
+    // 4. File list with contents
     out << "=== FILES AND CONTENTS ===\n\n";
 
     for (const auto &dir : dirs) {
@@ -195,10 +194,7 @@ int main() {
         try {
             for (const auto &entry : fs::recursive_directory_iterator(dirPath)) {
                 if (!entry.is_regular_file()) continue;
-
-                // Skip files that belong to excluded directories
-                if (is_excluded(entry.path(), root, exclude_patterns))
-                    continue;
+                if (is_excluded(entry.path(), root, exclude_patterns)) continue;
 
                 std::string fpath = entry.path().string();
                 out << "--- File: " << fpath << " ---\n";
