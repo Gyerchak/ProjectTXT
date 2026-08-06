@@ -1,6 +1,6 @@
 // ProjectTXT.cpp – tree + file list with contents (C++20)
 // Compile: g++ -std=c++20 ProjectTXT.cpp -o ProjectTXT   (Linux/macOS)
-//          cl /EHsc /std:c++latest ProjectTXT.cpp         (Windows)
+//          cl /EHsc /std:c++20 ProjectTXT.cpp            (Windows)
 
 #include <iostream>
 #include <fstream>
@@ -50,13 +50,12 @@ static fs::path get_executable_dir() {
     if (count != -1) {
         return fs::path(std::string(result, count)).parent_path();
     }
-    // Fallback if /proc is not available
-    return fs::current_path();
+    return fs::current_path();   // fallback
 #endif
 }
 
 // ----------------------------------------------------------------------
-// Check whether 'path' (relative to 'root') should be excluded
+// Check whether 'path' (relative to 'root') matches any exclude pattern
 static bool is_excluded(const fs::path &path, const fs::path &root,
                         const std::vector<std::string> &patterns) {
     if (patterns.empty()) return false;
@@ -110,7 +109,7 @@ void print_tree(std::ostream &out, const fs::path &dir,
 }
 
 // ----------------------------------------------------------------------
-// Quick binary detection
+// Quick binary check
 static bool is_binary(const fs::path &filepath) {
     std::ifstream f(filepath, std::ios::binary);
     if (!f) return false;
@@ -128,7 +127,7 @@ int main() {
     // Directories to scan for file contents
     const std::vector<std::string> dirs = {"src", "obj", "shaders", "include"};
 
-    // 1. Load exclusion patterns
+    // --- Load exclusion patterns ------------------------------------------
     std::vector<std::string> exclude_patterns;
     fs::path exe_dir = get_executable_dir();
     fs::path external_exclude = exe_dir / "exclude.txt";
@@ -140,12 +139,8 @@ int main() {
             while (std::getline(f, line)) {
                 std::string pat = trim(line);
                 if (pat.empty()) continue;
-
-                // C++20 convenience: remove trailing slashes with ends_with
-                while (!pat.empty() &&
-                       (pat.ends_with('/') || pat.ends_with('\\')))
+                while (!pat.empty() && (pat.back() == '/' || pat.back() == '\\'))
                     pat.pop_back();
-
                 if (!pat.empty())
                     exclude_patterns.push_back(pat);
             }
@@ -157,29 +152,20 @@ int main() {
         std::cout << "Using compiled-in default excludes.\n";
     }
 
-    // 2. Ensure output directory exists
-    std::error_code ec;
-    if (!fs::create_directory("output", ec) && ec) {
-        if (ec != std::make_error_code(std::errc::file_exists)) {
-            std::cerr << "Error creating output directory: " << ec.message() << '\n';
-            return 1;
-        }
-    }
-
-    // Open output file
+    // --- Open output file --------------------------------------------------
     std::ofstream out("ProjectTXT.txt");
     if (!out) {
         std::cerr << "Error: Could not open ProjectTXT.txt for writing.\n";
         return 1;
     }
 
-    // 3. Full directory tree
+    // --- 1. Directory tree -------------------------------------------------
     out << "=== DIRECTORY TREE ===\n";
     fs::path root = fs::current_path();
     print_tree(out, root, "", true, root, exclude_patterns);
     out << "\n\n";
 
-    // 4. File list with contents
+    // --- 2. File list with contents ----------------------------------------
     out << "=== FILES AND CONTENTS ===\n\n";
 
     for (const auto &dir : dirs) {
